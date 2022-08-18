@@ -4,6 +4,7 @@ import com.api.library.entity.library.Book;
 import com.api.library.entity.library.Library;
 import com.api.library.repository.library.BookRepository;
 import com.api.library.repository.library.LibraryRepository;
+import com.api.library.validators.BookValidators;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -19,10 +20,15 @@ public class BookController {
 
     BookRepository bookRepository;
     LibraryRepository libraryRepository;
+    BookValidators bookValidator;
 
-    public BookController(BookRepository bookRepository, LibraryRepository libraryRepository) {
+    public BookController(BookRepository bookRepository
+            , LibraryRepository libraryRepository
+            , BookValidators bookValidator
+    ) {
         this.bookRepository = bookRepository;
         this.libraryRepository = libraryRepository;
+        this.bookValidator = bookValidator;
     }
 
     @GetMapping(path = "/list")
@@ -34,10 +40,13 @@ public class BookController {
     @PostMapping("/create")
     public ResponseEntity<Book> createBook(@Validated @RequestBody Book book){
 
+        this.bookValidator.validate(book);
+
         Optional<Library> libraryOptional = this.libraryRepository.findById(book.getLibrary().getId());
         if(!libraryOptional.isPresent()){
             return new ResponseEntity<Book>(HttpStatus.NOT_FOUND);
         }
+
         book.setLibrary(libraryOptional.get());
         Book newLibrary = this.bookRepository.save(book);
         return new ResponseEntity<Book>(newLibrary, HttpStatus.CREATED);

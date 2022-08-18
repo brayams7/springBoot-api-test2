@@ -2,6 +2,7 @@ package com.api.library.controller.library;
 
 import com.api.library.entity.library.Library;
 import com.api.library.repository.library.LibraryRepository;
+import com.api.library.validators.LibraryValidaror;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +13,12 @@ import java.util.Optional;
 @RestController
 @RequestMapping(path = "/library")
 public class LibraryController {
-    LibraryRepository libraryRepository;
 
-    public LibraryController(LibraryRepository libraryRepository) {
+    LibraryRepository libraryRepository;
+    LibraryValidaror libraryValidaror;
+    public LibraryController(LibraryRepository libraryRepository, LibraryValidaror libraryValidaror) {
         this.libraryRepository = libraryRepository;
+        this.libraryValidaror = libraryValidaror;
     }
 
     @GetMapping(path = "/list")
@@ -25,12 +28,9 @@ public class LibraryController {
 
     @PostMapping("/create")
     public ResponseEntity<Library> createLibrary(@RequestBody Library library){
-        try{
-            Library newLibrary = this.libraryRepository.save(library);
-            return new ResponseEntity<Library>(newLibrary,HttpStatus.CREATED);
-        }catch (Exception e){
-            return new ResponseEntity<Library>(HttpStatus.BAD_REQUEST);
-        }
+        this.libraryValidaror.validate(library);
+        Library newLibrary = this.libraryRepository.save(library);
+        return new ResponseEntity<Library>(newLibrary,HttpStatus.CREATED);
     }
 
     @DeleteMapping(path = "/delete/{id}")
